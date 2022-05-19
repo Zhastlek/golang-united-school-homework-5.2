@@ -60,7 +60,7 @@ func (c *Cache) PutTill(key, value string, deadline time.Time) {
 func (c *Cache) checkDeadline(key string) bool {
 	today := time.Now()
 	if value, ok := c.Deadline[key]; ok {
-		if today.After(value) {
+		if today.After(value) || today == value {
 			return true
 		}
 	}

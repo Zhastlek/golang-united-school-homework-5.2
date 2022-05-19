@@ -68,10 +68,7 @@ func (c *Cache) checkDeadline(key string) bool {
 }
 
 func (c *Cache) checkExp(key string) bool {
-	if _, ok := c.Exp[key]; ok {
-		return true
-	}
-	return false
+	return c.Exp[key]
 }
 
 func (c *Cache) deleteKey(key string) {

@@ -3,21 +3,73 @@ package cache
 import "time"
 
 type Cache struct {
+	Hash     map[string]string
+	Deadline map[string]time.Time
+	Exp      map[string]bool
 }
 
 func NewCache() Cache {
-	return Cache{}
+	return Cache{
+		Hash:     make(map[string]string),
+		Deadline: make(map[string]time.Time),
+		Exp:      make(map[string]bool),
+	}
 }
 
-func (receiver) Get(key string) (string, bool) {
-
+func (c *Cache) Get(key string) (string, bool) {
+	if value, ok := c.Hash[key]; ok {
+		if c.checkExp(key) {
+			return value, true
+		}
+		if c.checkDeadline(key) {
+			return value, true
+		}
+	}
+	return "", false
 }
 
-func (receiver) Put(key, value string) {
+func (c *Cache) Put(key, value string) {
+	c.Hash[key] = value
+	c.Exp[key] = true
+	if _, ok := c.Deadline[key]; ok {
+		delete(c.Deadline, key)
+	}
 }
 
-func (receiver) Keys() []string {
+func (c *Cache) Keys() []string {
+	var sessions []string
+	for _, value := range c.Hash {
+		if c.checkExp(value) {
+			sessions = append(sessions, value)
+			continue
+		}
+		if c.checkDeadline(value) {
+			sessions = append(sessions, value)
+			continue
+		}
+	}
+	return sessions
 }
 
-func (receiver) PutTill(key, value string, deadline time.Time) {
+func (c *Cache) PutTill(key, value string, deadline time.Time) {
+	c.Hash[key] = value
+	c.Deadline[key] = deadline
+	c.Exp[key] = false
+}
+
+func (c *Cache) checkDeadline(key string) bool {
+	today := time.Now()
+	if value, ok := c.Deadline[key]; ok {
+		if today.After(value) || today == value {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *Cache) checkExp(key string) bool {
+	if _, ok := c.Exp[key]; ok {
+		return true
+	}
+	return false
 }

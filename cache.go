@@ -38,12 +38,12 @@ func (c *Cache) Put(key, value string) {
 
 func (c *Cache) Keys() []string {
 	var sessions []string
-	for _, value := range c.Hash {
-		if c.checkExp(value) {
+	for key, value := range c.Hash {
+		if c.checkExp(key) {
 			sessions = append(sessions, value)
 			continue
 		}
-		if c.checkDeadline(value) {
+		if c.checkDeadline(key) {
 			sessions = append(sessions, value)
 			continue
 		}
@@ -60,7 +60,7 @@ func (c *Cache) PutTill(key, value string, deadline time.Time) {
 func (c *Cache) checkDeadline(key string) bool {
 	today := time.Now()
 	if value, ok := c.Deadline[key]; ok {
-		if today.After(value) || today == value {
+		if today.After(value) {
 			return true
 		}
 	}
@@ -72,4 +72,12 @@ func (c *Cache) checkExp(key string) bool {
 		return true
 	}
 	return false
+}
+
+func (c *Cache) deleteKey(key string) {
+	if _, ok := c.Hash[key]; ok {
+		delete(c.Exp, key)
+		delete(c.Deadline, key)
+		delete(c.Hash, key)
+	}
 }

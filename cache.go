@@ -16,7 +16,7 @@ func NewCache() Cache {
 	}
 }
 
-func (c *Cache) Get(key string) (string, bool) {
+func (c Cache) Get(key string) (string, bool) {
 	if value, ok := c.Hash[key]; ok {
 		if c.checkExp(key) {
 			return value, true
@@ -28,15 +28,15 @@ func (c *Cache) Get(key string) (string, bool) {
 	return "", false
 }
 
-func (c *Cache) Put(key, value string) {
+func (c Cache) Put(key, value string) {
 	c.Hash[key] = value
 	c.Exp[key] = true
-	if _, ok := c.Deadline[key]; ok {
-		delete(c.Deadline, key)
-	}
+	// if _, ok := c.Deadline[key]; ok {
+	// 	delete(c.Deadline, key)
+	// }
 }
 
-func (c *Cache) Keys() []string {
+func (c Cache) Keys() []string {
 	var sessions []string
 	for key, value := range c.Hash {
 		if c.checkExp(key) {
@@ -51,13 +51,13 @@ func (c *Cache) Keys() []string {
 	return sessions
 }
 
-func (c *Cache) PutTill(key, value string, deadline time.Time) {
+func (c Cache) PutTill(key, value string, deadline time.Time) {
 	c.Hash[key] = value
 	c.Deadline[key] = deadline
 	c.Exp[key] = false
 }
 
-func (c *Cache) checkDeadline(key string) bool {
+func (c Cache) checkDeadline(key string) bool {
 	today := time.Now()
 	if value, ok := c.Deadline[key]; ok {
 		if today.After(value) || today == value {
@@ -67,14 +67,14 @@ func (c *Cache) checkDeadline(key string) bool {
 	return false
 }
 
-func (c *Cache) checkExp(key string) bool {
+func (c Cache) checkExp(key string) bool {
 	return c.Exp[key]
 }
 
-func (c *Cache) deleteKey(key string) {
-	if _, ok := c.Hash[key]; ok {
-		delete(c.Exp, key)
-		delete(c.Deadline, key)
-		delete(c.Hash, key)
-	}
-}
+// func (c *Cache) deleteKey(key string) {
+// 	if _, ok := c.Hash[key]; ok {
+// 		delete(c.Exp, key)
+// 		delete(c.Deadline, key)
+// 		delete(c.Hash, key)
+// 	}
+// }
